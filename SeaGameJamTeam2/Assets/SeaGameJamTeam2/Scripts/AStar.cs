@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System;
+using Unity.VisualScripting;
+using Unity.VisualScripting.FullSerializer;
 using UnityEngine;
 using UnityEngine.Animations;
 using Utils;
@@ -10,38 +12,39 @@ public class AStar
     class Node
     {
         public Vector3Int loc;
-        public float costToStartFromStart;
+        public float costToNodeFromStart;
         public float estimatedCostToGoal;
 
         public float totalCost
         {
-            get { return costToStartFromStart + estimatedCostToGoal; }
+            get { return costToNodeFromStart + estimatedCostToGoal; }
         }
         
         public Node parent;
         
 
-        public Node(Vector3Int newLoc, float nextCostToStart, float nextEstimatedCostToGoal, Node newParent)
+        public Node(Vector3Int newLoc, float nextCostToNodeFromStart, float nextEstimatedCostToGoal, Node newParent)
         {
             loc = newLoc;
             parent = newParent;
-            costToStartFromStart = nextCostToStart;
+            costToNodeFromStart = nextCostToNodeFromStart;
             estimatedCostToGoal = nextEstimatedCostToGoal;
         }
     }
     
-    private PriorityQueue<Node, float> openNodes = new PriorityQueue<Node, float>();
-    private HashSet<Vector3Int> openLocations = new HashSet<Vector3Int>();
-    private HashSet<Vector3Int> visitedLocations = new HashSet<Vector3Int>();
-    private Grid grid;
-
-    public AStar(Grid newGrid)
+    private TDGrid _tdGrid;
+    
+    public AStar(TDGrid newTdGrid)
     {
-        grid = newGrid;
+        _tdGrid = newTdGrid;
     }
 
     public List<Vector3Int> AStarAlgorithm(Vector3Int startNode, Vector3Int goalNode)
     {
+        PriorityQueue<Node, float> openNodes = new PriorityQueue<Node, float>();
+        HashSet<Vector3Int> openLocations = new HashSet<Vector3Int>();
+        HashSet<Vector3Int> visitedLocations = new HashSet<Vector3Int>();
+    
         // Add the starting node to the open list.
         // Assign a cost of zero to the starting node.
         // Assign a heuristic cost (usually the estimated distance to the goal) to the starting node.
@@ -52,13 +55,14 @@ public class AStar
         // While the open list is not empty:
         while (openNodes.Count > 0)
         {
+        
             // Find the node with the lowest total cost (cost + heuristic) in the open list. This node will be the current node.
             // Remove the current node from the open list and add it to the closed list.
             currentNode = openNodes.Dequeue(); // Get the node with the lowest f-cost
 
             // Check for Goal:
             if (currentNode.loc == goalNode)
-            {        
+            {
                 // Path Construction:
                 //
                 // Once the algorithm terminates and a path is found:
@@ -68,20 +72,25 @@ public class AStar
                 // The path is complete. Stop the algorithm.
                 // Generate Successors:
                 List<Vector3Int> path = new();
+                // TDGrid.print(currentNode.loc);
+
                 do
                 {
+                    // TDGrid.print(currentNode.loc);
                     path.Add(currentNode.loc);
                     currentNode = currentNode.parent;
                 } while (currentNode != null);
 
+                path.Reverse();
                 return path;
             }
 
             visitedLocations.Add(currentNode.loc);
             openLocations.Remove(currentNode.loc);
-
+            
+            var neighbors = _tdGrid.GetOpenNeighbors(currentNode.loc);
             // For each neighbor of the current node:
-            foreach (Vector3Int neighbor in grid.GetOpenNeighbors(currentNode.loc))
+            foreach (Vector3Int neighbor in neighbors)
             {
                 // If the neighbor is in the closed list, skip it.
                 if (visitedLocations.Contains(neighbor))
@@ -90,33 +99,37 @@ public class AStar
                     continue;
                 }
                 
-                float tentativeCostFromStart = currentNode.costToStartFromStart + CalculateDistance(currentNode.loc, neighbor);
+                if (_tdGrid.IsBlocked(neighbor, _tdGrid.navigationLayer))
+                {
+                    visitedLocations.Add(neighbor);
+                    continue;
+                }
+
+                if (_tdGrid.IsMovementBlocked(currentNode.loc, neighbor))
+                {
+                    continue;
+                }
+                
+                float costFromStartToNeighbor = currentNode.costToNodeFromStart + CalculateDistance(currentNode.loc, neighbor);
 
                 if (openLocations.Contains(neighbor))
                 {
                     // If the neighbor is already in the open list:
                     // Check if the new calculated cost is lower than the recorded cost for the neighbor.
-                    bool found = false;
                     foreach ((Node node, _) in openNodes.UnorderedItems)
                     {
                         if (node.loc == neighbor)
                         {
-                            found = true;
-                            if (tentativeCostFromStart < node.costToStartFromStart)
+                            if (costFromStartToNeighbor < node.costToNodeFromStart)
                             {
                                 // If so, update the cost and parent.
-                                node.costToStartFromStart = tentativeCostFromStart;
+                                node.costToNodeFromStart = costFromStartToNeighbor;
                                 node.parent = currentNode;
                             }
-
                             break;
                         }
                     }
-
-                    if (found)
-                    {
-                        continue;
-                    }
+                    continue;
                 }
                 
                 // If the neighbor is not in the open list:
@@ -126,7 +139,7 @@ public class AStar
                 // Calculate the heuristic cost from the neighbor to the goal.
                 if (!openLocations.Contains(neighbor))
                 {
-                    Node neighborNode = new Node(neighbor, tentativeCostFromStart, tentativeCostFromStart, currentNode);
+                    Node neighborNode = new Node(neighbor, costFromStartToNeighbor, costFromStartToNeighbor, currentNode);
                     openNodes.Enqueue(neighborNode, neighborNode.totalCost);
                     openLocations.Add(neighborNode.loc);
                 }
