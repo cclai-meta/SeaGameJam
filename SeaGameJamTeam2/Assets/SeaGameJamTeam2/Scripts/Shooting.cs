@@ -22,8 +22,37 @@ public class Shooting : MonoBehaviour
 
         if (_time >= timeInterval)
         {
-            Instantiate(projectile, transform.position, transform.rotation);
             _time = 0;
+            
+            GameObject nearestObject = GetNearestHittableObject();
+            if (!nearestObject)
+            {
+                Debug.Log("No Nearest Object");
+                return;
+            }
+            
+            var newProdectile = Instantiate(projectile, transform.position, transform.rotation);
+            Vector3 dir = (nearestObject.transform.position - transform.position).normalized;
+            newProdectile.transform.LookAt(transform.position + dir);
         }
+    }
+
+    GameObject GetNearestHittableObject()
+    {
+        GameObject res = null;
+        float distance = 99999999;
+        var enemies = FindObjectsOfType<Hittable>();
+
+        foreach (var e in enemies)
+        {
+            float d = Vector3.Distance(transform.position, e.gameObject.transform.position);
+            if (d < distance)
+            {
+                distance = d;
+                res = e.gameObject;
+            }
+        }
+
+        return res;
     }
 }

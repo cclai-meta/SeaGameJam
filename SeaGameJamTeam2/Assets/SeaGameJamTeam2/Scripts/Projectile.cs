@@ -4,10 +4,16 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float speed = 10.0f;
-    private Rigidbody _rigidbody;
-    private bool _hit = false;
+    [Range(0.01f, 10.0f)]
+    public float lifeTime = 10.0f;
     
+    [Range(1.0f, 30.0f)]
+    public float speed = 10.0f;
+    
+    private Rigidbody _rigidbody;
+    private float _lifeTime = 0.0f;
+    private bool _hit = false;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -17,6 +23,13 @@ public class Projectile : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        _lifeTime += Time.deltaTime;
+
+        if (_lifeTime > lifeTime)
+        {
+            Destroy(gameObject);
+        }
+        
         _rigidbody.MovePosition(_rigidbody.position + transform.forward * speed * Time.deltaTime);
     }
     
