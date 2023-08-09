@@ -40,7 +40,7 @@ public class TDGrid : MonoBehaviour
     private int roundNumber = 1;
     private float currentSpawnInterval;
 
-    private bool canPlace = false;
+    private bool canPlace = true;
     private bool go = false;
 
     private List<EnemyMovement> enemies = new();
@@ -72,6 +72,11 @@ public class TDGrid : MonoBehaviour
         maxEnemiesInWave = maxEnemiesInFirstWave * roundNumber;
     }
 
+    public void SetCanPlace(bool b)
+    {
+        canPlace = b;
+    }
+    
     void Update()
     {
         if (canPlace && Input.GetMouseButtonDown(0)) // Left mouse button
