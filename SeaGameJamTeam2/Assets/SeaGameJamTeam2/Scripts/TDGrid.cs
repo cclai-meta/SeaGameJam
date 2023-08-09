@@ -7,7 +7,6 @@ using TMPro;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
-using Button = UnityEngine.UIElements.Button;
 
 public class TDGrid : MonoBehaviour
 {
@@ -80,12 +79,14 @@ public class TDGrid : MonoBehaviour
         goalCell = WorldToGrid(worldTree.position);
         LivesText.text = Lives.ToString();
         MoneyText.text = money.ToString();
+        StartRoundButton = StartButtom.GetComponent<Button>();
     }
 
     public void StartRound()
     {
         go = true;
         maxEnemiesInWave = maxEnemiesInFirstWave * roundNumber;
+        StartButtom.GetComponent<Button>().enabled = false;
     }
 
     public void SetCanPlace(bool b)
@@ -255,11 +256,11 @@ public class TDGrid : MonoBehaviour
                 if (roundNumber > maxRounds)
                 {
                     GameWinText.SetActive(true);
-                    StartRoundButton.visible = false;
+                    StartButtom.SetActive(false);
                 }
                 else
                 {
-                    StartRoundButton.SetEnabled(true);
+                    StartButtom.GetComponent<Button>().enabled = true;
                 }
             }
         }

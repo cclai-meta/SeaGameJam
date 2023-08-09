@@ -22,7 +22,7 @@ public class Hittable : MonoBehaviour
     {
         HP--;
 
-        if (HP == 0)
+        if (HP <= 0)
         {
             TDGrid.Get().HandleEntityDeath(true, gameObject);
             Destroy(gameObject);
