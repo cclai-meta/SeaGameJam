@@ -52,6 +52,8 @@ public class Projectile : MonoBehaviour
         {
             _hit = true;
             Debug.Log("HIT");
+            Hittable hittable = other.GetComponent<Hittable>();
+            hittable.Hit();
             Destroy(gameObject);
         }
     }
