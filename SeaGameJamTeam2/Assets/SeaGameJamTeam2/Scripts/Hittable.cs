@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Hittable : MonoBehaviour
 {
+    public int HP = 3;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -14,5 +16,15 @@ public class Hittable : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void Hit()
+    {
+        HP--;
+
+        if (HP == 0)
+        {
+            Destroy(gameObject);
+        }
     }
 }
