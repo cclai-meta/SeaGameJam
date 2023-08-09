@@ -21,6 +21,8 @@ public class TDGrid : MonoBehaviour
     
     public int gridWidth = 10;// Number of columns in the grid
     public int gridHeight = 10; // Number of rows in the grid
+
+    public GameObject StartButtom;
     
     // Add a reference to the enemy's world tree target
     public Transform worldTree;
@@ -37,6 +39,7 @@ public class TDGrid : MonoBehaviour
     private int roundNumber = 1;
     private float currentSpawnInterval;
 
+    private bool canPlace = false;
     private bool go = false;
 
     private List<EnemyMovement> enemies = new();
@@ -66,7 +69,7 @@ public class TDGrid : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0)) // Left mouse button
+        if (canPlace && Input.GetMouseButtonDown(0)) // Left mouse button
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
