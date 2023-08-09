@@ -85,6 +85,7 @@ public class TDGrid : MonoBehaviour
     public void StartRound()
     {
         go = true;
+        enemySpawnIndex = 0;
         maxEnemiesInWave = maxEnemiesInFirstWave * roundNumber;
         StartButtom.GetComponent<Button>().enabled = false;
     }
@@ -222,7 +223,7 @@ public class TDGrid : MonoBehaviour
         GameObject newEnemy = Instantiate(enemyPrefab, startLocation.position, Quaternion.identity);
 
         Hittable enemyHit = newEnemy.GetComponent<Hittable>();
-        enemyHit.HP = enemyHit.HP * roundNumber;
+        enemyHit.HP *= roundNumber;
         
         // Assign the path to the enemy
         EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
