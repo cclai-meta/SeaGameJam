@@ -7,12 +7,13 @@ public class Shooting : MonoBehaviour
     public GameObject projectile;
     public float timeInterval = 3;
 
+    private Tower _tower;
     private float _time = 0;
     
     // Start is called before the first frame update
     void Start()
     {
-        
+        _tower = GetComponent<Tower>();
     }
 
     // Update is called once per frame
@@ -34,6 +35,9 @@ public class Shooting : MonoBehaviour
             var newProdectile = Instantiate(projectile, transform.position, transform.rotation);
             Vector3 dir = (nearestObject.transform.position - transform.position).normalized;
             newProdectile.transform.LookAt(transform.position + dir);
+
+            Projectile pc = newProdectile.GetComponent<Projectile>();
+            pc.SetTower(_tower);
         }
     }
 
