@@ -51,7 +51,7 @@ public class Projectile : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             _hit = true;
-            Debug.Log("HIT");
+            // Debug.Log("HIT");
             Hittable hittable = other.GetComponent<Hittable>();
             hittable.Hit();
             Destroy(gameObject);

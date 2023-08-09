@@ -1,13 +1,21 @@
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class Grid : MonoBehaviour
+public class TDGrid : MonoBehaviour
 {
     public GameObject towerPrefab; // Prefab of the tower to be placed
+    public GameObject enemyPrefab;
+    public float spawnInterval = 2.0f; 
+
+    public List<Transform> enemySpawnLocations;
+    
     public LayerMask groundLayer;   // Layer to check for tower placement
     public LayerMask towerLayer;   // Layer to check for tower placement
+    public LayerMask navigationLayer;   // Layer to check for tower placement
+    
     public Vector3 gridSize = new Vector3(1f, 1f, 1f); // Size of the grid cell
     
     public int gridWidth = 10;// Number of columns in the grid
@@ -15,17 +23,24 @@ public class Grid : MonoBehaviour
     
     // Add a reference to the enemy's world tree target
     public Transform worldTree;
+    public Vector3Int goalCell;
 
     private List<GameObject> placedTowers = new List<GameObject>();
 
-    private AStar pathfind;
+    private AStar pathfinder;
+    
+    private float spawnTimer = 5000.0f;
+    private int enemySpawnIndex = 0;
+    public int maxEnemiesInWave = 20;
+    private float currentSpawnInterval;
+
+    private List<EnemyMovement> enemies = new();
     
     // Start is called before the first frame update
     void Start()
     {
-        pathfind = new AStar(this);
-        // Assuming enemies will start from this GameObject's position
-        FindPath(transform.position, worldTree.position);
+        pathfinder = new AStar(this);
+        goalCell = WorldToGrid(worldTree.position);
     }
 
     void Update()
@@ -39,12 +54,26 @@ public class Grid : MonoBehaviour
             {
                 Vector3 gridPosition = GetNearestGridPosition(hit.point);
 
-                if (!IsBlocked(gridPosition))
+                if (!IsBlocked(gridPosition, towerLayer))
                 {
                     GameObject newTower = Instantiate(towerPrefab, gridPosition, Quaternion.identity);
                     placedTowers.Add(newTower);
+                    foreach (EnemyMovement enemy in enemies)
+                    {
+                        updateEnemyPath(enemy);
+                    }
                 }
             }
+        }
+        
+        spawnTimer += Time.deltaTime;
+
+        if (spawnTimer >= currentSpawnInterval && enemySpawnIndex < maxEnemiesInWave)
+        {
+            Transform startLocation = enemySpawnLocations[enemySpawnIndex % enemySpawnLocations.Count];
+            SpawnEnemy(startLocation);
+            enemySpawnIndex++;
+            spawnTimer = 0.0f; // Reset the spawn timer
         }
     }
 
@@ -55,28 +84,28 @@ public class Grid : MonoBehaviour
         return snappedPosition;
     }
 
-    bool IsBlocked(Vector3 position)
+    public bool IsBlocked(Vector3 position, LayerMask layer)
     {
-        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, towerLayer);
+        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, layer);
         return colliders.Length > 0;
     }
-    bool IsBlocked(Vector3Int gridPosition)
+    public bool IsBlocked(Vector3Int gridPosition, LayerMask layer)
     {
         Vector3 position = GridToWorld(gridPosition);
-        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, towerLayer);
+        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, layer);
         return colliders.Length > 0;
     }
     
-    bool IsMovementBlocked(Vector3Int currentCell, Vector3Int neighborCell)
+    public bool IsMovementBlocked(Vector3Int currentCell, Vector3Int neighborCell)
     {
         if (!IsValidCell(neighborCell.x, neighborCell.y))
         {
-            return false; // Neighbor is out of bounds
+            return true; // Neighbor is out of bounds
         }
 
-        if (!IsBlocked(neighborCell))
+        if (IsBlocked(neighborCell, navigationLayer))
         {
-            return false;
+            return true;
         }
 
         // Calculate the absolute difference between the current and neighbor cell indices
@@ -84,8 +113,8 @@ public class Grid : MonoBehaviour
         Vector3Int diffY = new Vector3Int(0, neighborCell.y - currentCell.y, 0);
 
         // Check if at least one adjacent cell is clear
-        bool isAdjacentClear = (!IsBlocked(currentCell + diffX))
-                               || (!IsBlocked(currentCell + diffY));
+        bool isAdjacentClear = (IsBlocked(currentCell + diffX, navigationLayer))
+                               || (IsBlocked(currentCell + diffY, navigationLayer));
 
         return isAdjacentClear;
     }
@@ -108,7 +137,7 @@ public class Grid : MonoBehaviour
     
     bool IsValidCell(int x, int y)
     {
-        return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight;
+        return x >= -gridWidth && x < gridWidth && y >= -gridHeight && y < gridHeight;
     }
 
     public List<Vector3Int> GetOpenNeighbors(Vector3Int pos)
@@ -133,29 +162,45 @@ public class Grid : MonoBehaviour
 
         return neighbors;
     }
-    
-    
-    void FindPath(Vector3 start, Vector3 target)
+
+    void SpawnEnemy(Transform startLocation)
     {
-        Vector3Int startCell = WorldToGrid(start);
-        Vector3Int targetCell = WorldToGrid(target);
-
-        List<Vector3Int> path = pathfind.AStarAlgorithm(startCell, targetCell);
-
-        // Now you can do something with the path, like move your enemy along it.
+        Vector3Int spawnGridLocation = WorldToGrid(startLocation.position);
+        GameObject newEnemy = Instantiate(enemyPrefab, startLocation.position, Quaternion.identity);
+        
+        // Assign the path to the enemy
+        EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
+        updateEnemyPath(enemyMovement);
+        enemyMovement.OnDeath += HandleEnemyDeath;
+        
+        enemies.Add(enemyMovement);
     }
     
-    // IEnumerator MoveAlongPath(List<Vector3Int> path)
-    // {
-    //     foreach (Vector3Int cell in path)
-    //     {
-    //         Vector3 worldPosition = GridToWorld(cell);
-    //         while (Vector3.Distance(transform.position, worldPosition) > 0.1f)
-    //         {
-    //             transform.position = Vector3.MoveTowards(transform.position, worldPosition, Time.deltaTime * moveSpeed);
-    //             yield return null;
-    //         }
-    //     }
-    // }
+    void HandleEnemyDeath(bool wasKilledByPlayer, EnemyMovement enemy)
+    {
+        enemies.Remove(enemy);
+        if (wasKilledByPlayer)
+        {
+            // Handle enemy death caused by the player
+        }
+        else
+        {
+            // Handle other cases of enemy death
+        }
+    }
 
+    void updateEnemyPath(EnemyMovement enemy)
+    {
+        Vector3Int start = WorldToGrid(enemy.gameObject.transform.position);
+        // Get the enemy's path using A* pathfinding
+        List<Vector3Int> path = pathfinder.AStarAlgorithm(start, goalCell);
+
+        List<Vector3> worldPath = new List<Vector3>();
+        foreach (Vector3Int point in path)
+        {
+            worldPath.Add(GridToWorld(point));
+        }
+        print(worldPath.Count);
+        enemy.SetPath(worldPath);
+    }
 }

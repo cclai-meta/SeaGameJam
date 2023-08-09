@@ -27,7 +27,7 @@ public class Shooting : MonoBehaviour
             GameObject nearestObject = GetNearestHittableObject();
             if (!nearestObject)
             {
-                Debug.Log("No Nearest Object");
+                // Debug.Log("No Nearest Object");
                 return;
             }
             

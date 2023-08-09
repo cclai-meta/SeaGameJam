@@ -209,7 +209,7 @@ Transform:
   m_GameObject: {fileID: 352443829}
   serializedVersion: 2
   m_LocalRotation: {x: 0.45451945, y: -0.54167527, z: 0.45451945, w: 0.54167527}
-  m_LocalPosition: {x: 1.79, y: 16.07, z: 0.87}
+  m_LocalPosition: {x: 3.83, y: 20.3, z: 0.87}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -534,16 +534,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 1211875662182663347, guid: b698595816ff60849967991914b92757, type: 3}
+  enemyPrefab: {fileID: 3897372501702185312, guid: 310049e78f935624880dd93d34d52cab, type: 3}
+  spawnInterval: 500
+  enemySpawnLocations:
+  - {fileID: 796580051}
   groundLayer:
     serializedVersion: 2
     m_Bits: 128
   towerLayer:
+    serializedVersion: 2
+    m_Bits: 320
+  navigationLayer:
     serializedVersion: 2
     m_Bits: 64
   gridSize: {x: 1, y: 1, z: 1}
   gridWidth: 10
   gridHeight: 10
   worldTree: {fileID: 961162413}
+  goalCell: {x: 0, y: 0, z: 0}
+  maxEnemiesInWave: 1
 --- !u!1 &961162409
 GameObject:
   m_ObjectHideFlags: 0
@@ -556,7 +565,7 @@ GameObject:
   - component: {fileID: 961162412}
   - component: {fileID: 961162411}
   - component: {fileID: 961162410}
-  m_Layer: 6
+  m_Layer: 8
   m_Name: WorldTree
   m_TagString: Untagged
   m_Icon: {fileID: 0}
