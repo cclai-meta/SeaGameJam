@@ -40,7 +40,11 @@ public class TDGrid : MonoBehaviour
     private int roundNumber = 1;
     private float currentSpawnInterval;
 
+
     private bool canPlace = true;
+
+    public int money = 6;
+    
     private bool go = false;
 
     private List<EnemyMovement> enemies = new();
@@ -79,7 +83,7 @@ public class TDGrid : MonoBehaviour
     
     void Update()
     {
-        if (canPlace && Input.GetMouseButtonDown(0)) // Left mouse button
+        if (canPlace && Input.GetMouseButtonDown(0) && money > 0) // Left mouse button
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
@@ -230,6 +234,7 @@ public class TDGrid : MonoBehaviour
 
             if (enemies.Count == 0)
             {
+                money += 2 * roundNumber;
                 OnRoundComplete?.Invoke();
             }
         }
