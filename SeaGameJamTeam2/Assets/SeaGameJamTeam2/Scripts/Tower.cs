@@ -45,12 +45,12 @@ public class Tower : MonoBehaviour
         else if (exp < 10)
         {
             SetTowerType(TowerType.Eyeball);
-            timeInterval = 2;
+            timeInterval = 1;
         }
         else if (exp < 15)
         {
             SetTowerType(TowerType.Monster);
-            timeInterval = 1;
+            timeInterval = 0.3f;
         }
     }
     
