@@ -14,6 +14,8 @@ public class Projectile : MonoBehaviour
     private float _lifeTime = 0.0f;
     private bool _hit = false;
 
+    private Tower _tower;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -32,6 +34,12 @@ public class Projectile : MonoBehaviour
         
         _rigidbody.MovePosition(_rigidbody.position + transform.forward * speed * Time.deltaTime);
     }
+
+    public void SetTower(Tower tower)
+    {
+        this._tower = tower;
+    }
+    
     
     private void OnCollisionEnter(Collision collision)
     {
@@ -51,9 +59,9 @@ public class Projectile : MonoBehaviour
         if (other.CompareTag("Enemy"))
         {
             _hit = true;
-            // Debug.Log("HIT");
             Hittable hittable = other.GetComponent<Hittable>();
             hittable.Hit();
+            _tower.AddExp();
             Destroy(gameObject);
         }
     }
