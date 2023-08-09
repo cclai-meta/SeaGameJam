@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
@@ -47,6 +48,10 @@ public class TDGrid : MonoBehaviour
     public int Lives = 20;
 
     private static TDGrid theGrid;
+    
+    
+    public event Action OnRoundComplete; // Event to signal enemy's death
+    public event Action OnDeath; // Event to signal enemy's death
 
     public static TDGrid Get()
     {
@@ -212,6 +217,15 @@ public class TDGrid : MonoBehaviour
             if (!wasKilledByPlayer)
             {
                 Lives--;
+                if (Lives == 0)
+                {
+                    OnDeath?.Invoke();
+                }
+            }
+
+            if (enemies.Count == 0)
+            {
+                OnRoundComplete?.Invoke();
             }
         }
     }
