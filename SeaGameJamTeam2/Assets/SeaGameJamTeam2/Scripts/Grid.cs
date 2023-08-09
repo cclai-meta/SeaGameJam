@@ -6,6 +6,7 @@ using UnityEngine;
 public class Grid : MonoBehaviour
 {
     public GameObject towerPrefab; // Prefab of the tower to be placed
+    public LayerMask groundLayer;   // Layer to check for tower placement
     public LayerMask towerLayer;   // Layer to check for tower placement
     public Vector3 gridSize = new Vector3(1f, 1f, 1f); // Size of the grid cell
     
@@ -34,7 +35,7 @@ public class Grid : MonoBehaviour
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit, Mathf.Infinity, towerLayer))
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundLayer))
             {
                 Vector3 gridPosition = GetNearestGridPosition(hit.point);
 
@@ -56,13 +57,13 @@ public class Grid : MonoBehaviour
 
     bool IsBlocked(Vector3 position)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(position, gridSize.x / 2, towerLayer);
+        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, towerLayer);
         return colliders.Length > 0;
     }
     bool IsBlocked(Vector3Int gridPosition)
     {
         Vector3 position = GridToWorld(gridPosition);
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(position, gridSize.x / 2, towerLayer);
+        Collider[] colliders = Physics.OverlapSphere(position, gridSize.x / 2, towerLayer);
         return colliders.Length > 0;
     }
     
@@ -92,16 +93,16 @@ public class Grid : MonoBehaviour
     public Vector3Int WorldToGrid(Vector3 position)
     {
         int x = Mathf.FloorToInt(position.x / gridSize.x);
-        int y = Mathf.FloorToInt(position.y / gridSize.y);
-        int z = Mathf.FloorToInt(position.z / gridSize.z);
+        int z = Mathf.FloorToInt(0);
+        int y = Mathf.FloorToInt(position.z / gridSize.z);
         return new Vector3Int(x, y, z);
     }
 
     public Vector3 GridToWorld(Vector3Int gridPosition)
     {
         float x = gridPosition.x * gridSize.x + gridSize.x / 2;
-        float y = gridPosition.y * gridSize.y + gridSize.y / 2;
-        float z = gridPosition.z * gridSize.z + gridSize.z / 2;
+        float z = gridPosition.y * gridSize.y + gridSize.y / 2;
+        float y = gridPosition.z * gridSize.z + gridSize.z / 2;
         return new Vector3(x, y, z);
     }
     
