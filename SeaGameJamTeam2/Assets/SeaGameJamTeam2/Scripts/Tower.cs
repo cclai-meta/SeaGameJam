@@ -17,7 +17,8 @@ public class Tower : MonoBehaviour
     [SerializeField] private GameObject monster;
     
     public TowerType towerType;
-
+    public float timeInterval = 3;
+    
     private int exp = 0;
     
     // Start is called before the first frame update
@@ -39,14 +40,17 @@ public class Tower : MonoBehaviour
         if (exp < 5)
         {
             SetTowerType(TowerType.Venus);
+            timeInterval = 3;
         }
         else if (exp < 10)
         {
             SetTowerType(TowerType.Eyeball);
+            timeInterval = 2;
         }
         else if (exp < 15)
         {
             SetTowerType(TowerType.Monster);
+            timeInterval = 1;
         }
     }
     

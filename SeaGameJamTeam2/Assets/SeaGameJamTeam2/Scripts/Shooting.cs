@@ -5,8 +5,6 @@ using UnityEngine;
 public class Shooting : MonoBehaviour
 {
     public GameObject projectile;
-    public float timeInterval = 3;
-
     private Tower _tower;
     private float _time = 0;
     
@@ -21,7 +19,7 @@ public class Shooting : MonoBehaviour
     {
         _time += Time.deltaTime;
 
-        if (_time >= timeInterval)
+        if (_time >= _tower.timeInterval)
         {
             _time = 0;
             
