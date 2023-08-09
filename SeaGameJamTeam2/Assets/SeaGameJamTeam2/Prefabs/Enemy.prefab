@@ -133,7 +133,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0f16b8ab1bd9f3045a485dd9e7da37ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 3
+  moveSpeed: 1
   waypoints: []
 --- !u!1001 &6967342580026086
 PrefabInstance:

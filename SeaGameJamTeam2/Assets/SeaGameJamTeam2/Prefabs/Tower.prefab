@@ -54,7 +54,7 @@ MonoBehaviour:
   eyeball: {fileID: 1506914668474391153}
   monster: {fileID: 7204544341806601804}
   towerType: 1
-  timeInterval: 3
+  timeInterval: 1
 --- !u!114 &4801064086786218134
 MonoBehaviour:
   m_ObjectHideFlags: 0

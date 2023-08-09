@@ -96,6 +96,7 @@ public class TDGrid : MonoBehaviour
                 {
                     GameObject newTower = Instantiate(towerPrefab, gridPosition, Quaternion.identity);
                     placedTowers.Add(newTower);
+                    money--;
                     foreach (EnemyMovement enemy in enemies)
                     {
                         updateEnemyPath(enemy);
