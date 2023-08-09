@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -29,18 +30,38 @@ public class TDGrid : MonoBehaviour
 
     private AStar pathfinder;
     
-    private float spawnTimer = 5000.0f;
+    private float spawnTimer = 0.5f;
     private int enemySpawnIndex = 0;
-    public int maxEnemiesInWave = 20;
+    public int maxEnemiesInFirstWave = 20;
+    private int maxEnemiesInWave = 20;
+    private int roundNumber = 1;
     private float currentSpawnInterval;
 
+    private bool go = false;
+
     private List<EnemyMovement> enemies = new();
+
+    public int Lives = 20;
+
+    private static TDGrid theGrid;
+
+    public static TDGrid Get()
+    {
+        return theGrid;
+    }
     
     // Start is called before the first frame update
     void Start()
     {
+        theGrid = this;
         pathfinder = new AStar(this);
         goalCell = WorldToGrid(worldTree.position);
+    }
+
+    public void StartRound()
+    {
+        go = true;
+        maxEnemiesInWave = maxEnemiesInFirstWave * roundNumber;
     }
 
     void Update()
@@ -66,14 +87,14 @@ public class TDGrid : MonoBehaviour
             }
         }
         
-        spawnTimer += Time.deltaTime;
+        currentSpawnInterval += Time.deltaTime;
 
-        if (spawnTimer >= currentSpawnInterval && enemySpawnIndex < maxEnemiesInWave)
+        if (go && spawnTimer < (currentSpawnInterval * roundNumber) && enemySpawnIndex < maxEnemiesInWave)
         {
             Transform startLocation = enemySpawnLocations[enemySpawnIndex % enemySpawnLocations.Count];
             SpawnEnemy(startLocation);
             enemySpawnIndex++;
-            spawnTimer = 0.0f; // Reset the spawn timer
+            currentSpawnInterval = 0.0f; // Reset the spawn timer
         }
     }
 
@@ -167,25 +188,28 @@ public class TDGrid : MonoBehaviour
     {
         Vector3Int spawnGridLocation = WorldToGrid(startLocation.position);
         GameObject newEnemy = Instantiate(enemyPrefab, startLocation.position, Quaternion.identity);
+
+        Hittable enemyHit = newEnemy.GetComponent<Hittable>();
+        enemyHit.HP = enemyHit.HP * roundNumber;
         
         // Assign the path to the enemy
         EnemyMovement enemyMovement = newEnemy.GetComponent<EnemyMovement>();
         updateEnemyPath(enemyMovement);
-        enemyMovement.OnDeath += HandleEnemyDeath;
+        enemyMovement.OnDeath += HandleEntityDeath;
         
         enemies.Add(enemyMovement);
     }
     
-    void HandleEnemyDeath(bool wasKilledByPlayer, EnemyMovement enemy)
+    public void HandleEntityDeath(bool wasKilledByPlayer, GameObject enemy)
     {
-        enemies.Remove(enemy);
-        if (wasKilledByPlayer)
+        EnemyMovement enemyMovement = enemy.GetComponent<EnemyMovement>();
+        if (enemyMovement)
         {
-            // Handle enemy death caused by the player
-        }
-        else
-        {
-            // Handle other cases of enemy death
+            enemies.Remove(enemyMovement);
+            if (!wasKilledByPlayer)
+            {
+                Lives--;
+            }
         }
     }
 
@@ -200,7 +224,6 @@ public class TDGrid : MonoBehaviour
         {
             worldPath.Add(GridToWorld(point));
         }
-        print(worldPath.Count);
         enemy.SetPath(worldPath);
     }
 }

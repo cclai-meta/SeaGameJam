@@ -72,11 +72,9 @@ public class AStar
                 // The path is complete. Stop the algorithm.
                 // Generate Successors:
                 List<Vector3Int> path = new();
-                // TDGrid.print(currentNode.loc);
 
                 do
                 {
-                    // TDGrid.print(currentNode.loc);
                     path.Add(currentNode.loc);
                     currentNode = currentNode.parent;
                 } while (currentNode != null);

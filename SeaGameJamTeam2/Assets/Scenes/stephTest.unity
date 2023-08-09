@@ -552,7 +552,7 @@ MonoBehaviour:
   gridHeight: 10
   worldTree: {fileID: 961162413}
   goalCell: {x: 0, y: 0, z: 0}
-  maxEnemiesInWave: 1
+  maxEnemiesInWave: 20
 --- !u!1 &961162409
 GameObject:
   m_ObjectHideFlags: 0

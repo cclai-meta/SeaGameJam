@@ -8,7 +8,7 @@ public class EnemyMovement : MonoBehaviour
     public List<Vector3> waypoints = new List<Vector3>(); // List of waypoints to follow
 
     private int currentWaypointIndex = 0;
-    public event Action<bool, EnemyMovement> OnDeath; // Event to signal enemy's death
+    public event Action<bool, GameObject> OnDeath; // Event to signal enemy's death
 
     private void Update()
     {
@@ -49,7 +49,7 @@ public class EnemyMovement : MonoBehaviour
         // ...
 
         // Trigger the OnDeath event and pass the boolean parameter
-        OnDeath?.Invoke(wasKilledByPlayer, this);
+        OnDeath?.Invoke(wasKilledByPlayer, gameObject);
 
         // Destroy the enemy GameObject
         Destroy(gameObject);

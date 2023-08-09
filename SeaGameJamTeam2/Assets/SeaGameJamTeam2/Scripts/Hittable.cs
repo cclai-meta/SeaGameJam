@@ -24,6 +24,7 @@ public class Hittable : MonoBehaviour
 
         if (HP == 0)
         {
+            TDGrid.Get().HandleEntityDeath(true, gameObject);
             Destroy(gameObject);
         }
     }
