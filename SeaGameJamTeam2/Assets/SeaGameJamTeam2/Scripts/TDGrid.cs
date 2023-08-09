@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Runtime.InteropServices;
+using TMPro;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
+using Button = UnityEngine.UIElements.Button;
 
 public class TDGrid : MonoBehaviour
 {
@@ -31,6 +34,12 @@ public class TDGrid : MonoBehaviour
 
     private List<GameObject> placedTowers = new List<GameObject>();
 
+    public Button StartRoundButton;
+    public GameObject GameOverText;
+    public GameObject GameWinText;
+    public TextMeshProUGUI LivesText;
+    public TextMeshProUGUI MoneyText;
+
     private AStar pathfinder;
     
     private float spawnTimer = 0.5f;
@@ -38,6 +47,7 @@ public class TDGrid : MonoBehaviour
     public int maxEnemiesInFirstWave = 20;
     private int maxEnemiesInWave = 20;
     private int roundNumber = 1;
+    public int maxRounds = 3;
     private float currentSpawnInterval;
 
 
@@ -68,6 +78,8 @@ public class TDGrid : MonoBehaviour
         theGrid = this;
         pathfinder = new AStar(this);
         goalCell = WorldToGrid(worldTree.position);
+        LivesText.text = Lives.ToString();
+        MoneyText.text = money.ToString();
     }
 
     public void StartRound()
@@ -97,6 +109,7 @@ public class TDGrid : MonoBehaviour
                     GameObject newTower = Instantiate(towerPrefab, gridPosition, Quaternion.identity);
                     placedTowers.Add(newTower);
                     money--;
+                    MoneyText.text = money.ToString();
                     foreach (EnemyMovement enemy in enemies)
                     {
                         updateEnemyPath(enemy);
@@ -227,9 +240,11 @@ public class TDGrid : MonoBehaviour
             if (!wasKilledByPlayer)
             {
                 Lives--;
+                LivesText.text = Lives.ToString();
                 if (Lives == 0)
                 {
                     OnDeath?.Invoke();
+                    GameOverText.SetActive(true);
                 }
             }
 
@@ -237,6 +252,15 @@ public class TDGrid : MonoBehaviour
             {
                 money += 2 * roundNumber;
                 OnRoundComplete?.Invoke();
+                if (roundNumber > maxRounds)
+                {
+                    GameWinText.SetActive(true);
+                    StartRoundButton.visible = false;
+                }
+                else
+                {
+                    StartRoundButton.SetEnabled(true);
+                }
             }
         }
     }
